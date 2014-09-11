@@ -1023,7 +1023,7 @@ class ProductCore extends ObjectModel
 				($id_category ? 'LEFT JOIN `'._DB_PREFIX_.'category_product` c ON (c.`id_product` = p.`id_product`)' : '').'
 				WHERE pl.`id_lang` = '.(int)$id_lang.
 					($id_category ? ' AND c.`id_category` = '.(int)$id_category : '').
-					($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '').
+					($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)' : '').
 					($only_active ? ' AND product_shop.`active` = 1' : '').'
 				ORDER BY '.(isset($order_by_prefix) ? pSQL($order_by_prefix).'.' : '').'`'.pSQL($order_by).'` '.pSQL($order_way).
 				($limit > 0 ? ' LIMIT '.(int)$start.','.(int)$limit : '');
@@ -1051,7 +1051,7 @@ class ProductCore extends ObjectModel
 				'.Shop::addSqlAssociation('product', 'p').'
 				LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON (p.`id_product` = pl.`id_product` '.Shop::addSqlRestrictionOnLang('pl').')
 				WHERE pl.`id_lang` = '.(int)$id_lang.'
-				'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '').'
+				'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)' : '').'
 				ORDER BY pl.`name`';
 		return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 	}
@@ -1982,7 +1982,7 @@ class ProductCore extends ObjectModel
 							INTERVAL '.(Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20).' DAY
 						)
 					) > 0
-					'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '').'
+					'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND id_product IN (SELECT id_product FROM '._DB_PREFIX_.'image)' : '').'
 					AND p.`id_product` IN (
 						SELECT cp.`id_product`
 						FROM `'._DB_PREFIX_.'category_group` cg
@@ -2019,7 +2019,7 @@ class ProductCore extends ObjectModel
 		$sql->where('product_shop.`active` = 1');
 
 		if ($front)
-			$sql->where('product_shop.`visibility` IN ("both", "catalog")');
+			$sql->where('product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)');
 		$sql->where('
 			DATEDIFF(
 				product_shop.`date_add`,
@@ -2128,7 +2128,7 @@ class ProductCore extends ObjectModel
 							LEFT JOIN `'._DB_PREFIX_.'category_product` cp ON (cp.`id_category` = cg.`id_category`)
 							WHERE cg.`id_group` '.$sql_groups.'
 						)
-					'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '').'
+					'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)' : '').'
 					GROUP BY product_shop.id_product
 					ORDER BY RAND()';
 
@@ -2218,7 +2218,7 @@ class ProductCore extends ObjectModel
 					'.Shop::addSqlAssociation('product', 'p').'
 					WHERE product_shop.`active` = 1
 						AND product_shop.`show_price` = 1
-						'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '').'
+						'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)' : '').'
 						'.((!$beginning && !$ending) ? 'AND p.`id_product` IN('.((is_array($tab_id_product) && count($tab_id_product)) ? implode(', ', $tab_id_product) : 0).')' : '').'
 						AND p.`id_product` IN (
 							SELECT cp.`id_product`
@@ -2259,7 +2259,7 @@ class ProductCore extends ObjectModel
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
 				WHERE product_shop.`active` = 1
 				AND product_shop.`show_price` = 1
-				'.($front ? ' AND p.`visibility` IN ("both", "catalog")' : '').'
+				'.($front ? ' AND product_shop.`visibility` IN ("both", "catalog") AND p.id_product IN (SELECT DISTINCT id_product FROM '._DB_PREFIX_.'image)' : '').'
 				'.((!$beginning && !$ending) ? ' AND p.`id_product` IN ('.((is_array($tab_id_product) && count($tab_id_product)) ? implode(', ', $tab_id_product) : 0).')' : '').'
 				AND p.`id_product` IN (
 					SELECT cp.`id_product`
